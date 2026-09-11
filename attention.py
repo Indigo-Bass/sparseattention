@@ -39,6 +39,52 @@ def dense_attention(Q, K, V, mask=None):
     
     return output, attn_weights
 
+def create_sliding_window_mask(seq_len, window_size, causal=False):
+    """
+    Creates a boolean mask for sliding window attention.
+    Returns: Tensor of shape (seq_len, seq_len) where True means MASKED OUT (ignored).
+    """
+    i = torch.arange(seq_len).unsqueeze(1)
+    j = torch.arange(seq_len).unsqueeze(0)
+    
+    # Keep tokens within window distance
+    keep = torch.abs(i - j) <= window_size
+    
+    if causal:
+        # If causal, a token can only attend to previous tokens
+        keep = keep & (j <= i)
+        
+    return ~keep
+
+def create_bigbird_mask(seq_len, window_size, num_global, num_random, causal=False):
+    """
+    Creates a boolean mask for BigBird-style sparse attention.
+    (Local window + Global tokens + Random tokens)
+    """
+    i = torch.arange(seq_len).unsqueeze(1)
+    j = torch.arange(seq_len).unsqueeze(0)
+    
+    # 1. Local connections
+    keep_local = torch.abs(i - j) <= window_size
+    
+    # 2. Global connections (e.g., first few tokens are highly connected)
+    keep_global = (i < num_global) | (j < num_global)
+    
+    # 3. Random connections (each row gets a few random tokens it can attend to)
+    rand_scores = torch.rand(seq_len, seq_len)
+    _, random_indices = torch.topk(rand_scores, num_random, dim=-1)
+    keep_random = torch.zeros(seq_len, seq_len, dtype=torch.bool)
+    keep_random.scatter_(1, random_indices, True)
+    
+    # Combine all allowed connections
+    keep = keep_local | keep_global | keep_random
+    
+    if causal:
+        keep = keep & (j <= i)
+        
+    return ~keep
+
+
 
 if __name__ == "__main__":
     # Quick sanity check on random tensors
