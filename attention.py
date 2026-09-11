@@ -12,7 +12,15 @@ def dense_attention(Q, K, V, mask=None):
         else:
             scores = scores + mask
 
+    # 3. Softmax along the key sequence dimension
     attn_weights = torch.softmax(scores, dim=-1)
+    
+    # --- NEW: Item 1.4 NaN Handling ---
+    # If an entire row is masked out (-inf), softmax yields NaNs.
+    # We replace NaNs with 0.0 so the attention output for that token is a zero vector.
+    attn_weights = torch.nan_to_num(attn_weights, nan=0.0)
+    
+    # 4. Weighted sum over values
     output = torch.matmul(attn_weights, V)
     
     return output, attn_weights

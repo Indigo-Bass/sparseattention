@@ -33,5 +33,23 @@ def test_correctness():
         assert diff < 1e-5, f"{name} mismatch! Diff: {diff}"
         print(f"[PASS] 1.2 & 1.3 {name} matches PyTorch reference (Diff: {diff:.2e})")
 
+def test_nan_handling():
+    print("\n=== Item 1.4: NaN Edge Case Handling ===")
+    B, H, S, d_k = 1, 1, 4, 16
+    Q, K, V = torch.randn(B, H, S, d_k), torch.randn(B, H, S, d_k), torch.randn(B, H, S, d_k)
+    
+    # Construct a mask where the last row is entirely True (fully masked)
+    mask = torch.zeros(S, S, dtype=torch.bool)
+    mask[-1, :] = True 
+    
+    out, weights = dense_attention(Q, K, V, mask=mask)
+    
+    assert not torch.isnan(out).any(), "NaNs detected in output!"
+    assert not torch.isnan(weights).any(), "NaNs detected in weights!"
+    assert (out[0, 0, -1, :] == 0).all(), "Fully masked row should output zeros."
+    
+    print("[PASS] 1.4 Fully masked rows handled gracefully (NaNs converted to 0.0)")
+
 if __name__ == "__main__":
     test_correctness()
+    test_nan_handling()
