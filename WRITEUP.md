@@ -13,9 +13,11 @@ To handle this edge case gracefully, the implementation intercepts the attention
 ## 3. Performance Benchmark (Item 1.5)
 ![Benchmark Results](benchmark_results.png)
 
-The benchmark suite evaluated sequence lengths scaling from 512 up to 8192 tokens. Dense attention intrinsically scales at $O(N^2)$ for memory and computation. Conversely, sparse patterns cap the context volume per token, leaning toward linear scaling. 
+The benchmark suite evaluated sequence lengths scaling from 512 up to 8192 tokens on an Intel Core i7 CPU. Strikingly, the empirical results show that **Dense attention was consistently faster than both sparse variants**, with BigBird being the most computationally expensive. 
 
-However, practical profiling reveals minor mask-generation overheads for smaller sequence lengths. Sparsity demonstrates empirical superiority only when sequence lengths breach the critical threshold where $O(N^2)$ scaling begins to overwhelm memory caches.
+While sparse attention theoretically reduces complexity to $O(N \cdot w)$, our manual implementation computes the full $O(N^2)$ dot-product matrix before applying the sparsity mask via `masked_fill`. Therefore, no arithmetic operations are actually skipped. Furthermore, generating massive $8192 \times 8192$ boolean masks dynamically—particularly the sorting operations required for BigBird's random tokens—introduces immense computational and memory overhead. 
+
+This proves a crucial reality: sparse attention only yields performance benefits if it is backed by specialized hardware kernels (e.g., custom CUDA/Triton kernels) that fundamentally bypass computing the masked blocks. In a naive implementation, the overhead of masking vastly outweighs the theoretical benefits.
 
 ## 4. Quality Evaluation & Training Results (Item 1.6)
 We trained a 2-layer character-level GPT on the TinyShakespeare dataset for 500 iterations across all three patterns on a T4 GPU. 
