@@ -1,0 +1,33 @@
+Running on device: CUDA
+
+--- Training DENSE ---
+step 0: train loss 4.3485, val loss 4.3533
+step 100: train loss 2.6721, val loss 2.6798
+step 200: train loss 2.5394, val loss 2.5374
+step 300: train loss 2.4788, val loss 2.4844
+step 400: train loss 2.4398, val loss 2.4433
+step 499: train loss 2.3853, val loss 2.3868
+[DENSE] Final Val Loss: 2.3990 | Time: 8.4s
+
+--- Training SLIDING_WINDOW ---
+step 0: train loss 4.3904, val loss 4.3870
+step 100: train loss 2.6768, val loss 2.6759
+step 200: train loss 2.5047, val loss 2.5079
+step 300: train loss 2.4428, val loss 2.4568
+step 400: train loss 2.3951, val loss 2.4122
+step 499: train loss 2.3509, val loss 2.3591
+[SLIDING_WINDOW] Final Val Loss: 2.3609 | Time: 9.1s
+
+--- Training BIGBIRD ---
+step 0: train loss 4.3276, val loss 4.3263
+step 100: train loss 2.6588, val loss 2.6645
+step 200: train loss 2.5076, val loss 2.5071
+step 300: train loss 2.4411, val loss 2.4466
+step 400: train loss 2.3931, val loss 2.3966
+step 499: train loss 2.3330, val loss 2.3491
+[BIGBIRD] Final Val Loss: 2.3523 | Time: 12.0s
+
+=== FINAL VALIDATION LOSS ===
+dense: 2.3990
+sliding_window: 2.3609
+bigbird: 2.3523
